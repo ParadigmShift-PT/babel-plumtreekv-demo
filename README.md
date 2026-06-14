@@ -149,7 +149,9 @@ automated, headless runs.
 | `plumtreekv.digest.interval` | `5000` | Period (ms) of convergence-digest telemetry; `≤ 0` disables. |
 | `plumtreekv.workload.enabled` | `false` | Headless random-write driver (no UI needed). |
 | `plumtreekv.workload.rate` / `.keyspace` / `.duration` | `2` / `16` / `0` | Writes/sec, number of distinct keys, run length (ms; `0` = unbounded). |
-| `plumtreekv.workload.controlFile` | (unset) | Path to a shared `WAIT`/`RUN`/`STOP` control file for scripted runs — lets an external driver coordinate when all nodes start and stop writing (and drain in-flight messages before reading results). |
+| `plumtreekv.workload.startDelay` | `5000` | Warm-up delay (ms) before writing begins, so the overlay can form first. Used in non-control mode (ignored when a control file is set). |
+| `plumtreekv.workload.controlFile` | (unset) | Path to a shared control file for scripted runs (overrides `startDelay`). The file holds one token: `RUN` makes every node begin writing together, `STOP` ends it; any other value — conventionally `WAIT` — means keep waiting. This lets an external driver coordinate a synchronized start and a clean drain of in-flight messages before results are read. |
+| `plumtreekv.workload.controlPollMs` | `250` | How often (ms) the control file is polled (control mode only). |
 
 ---
 
@@ -158,7 +160,8 @@ automated, headless runs.
 Alongside the human-readable protocol log (`babel-plumtree-demo-<port>.log`), each
 node writes a small machine-readable telemetry file
 (`babel-plumtree-demo-telemetry-<port>.log`) — one structured event per line
-(`SET` / `DELIVER` / `DIGEST` / `NEIGHBOR_*` / `WRITE_START` / `SYNC_MERGE`). That's
+(`START` / `SET` / `DELIVER` / `DIGEST` / `NEIGHBOR_*` / `WRITE_START` /
+`WORKLOAD_STOP` / `SYNC_MERGE`). That's
 enough for an external driver to verify, automatically, that the demo really does
 what it claims: that every write reaches every node (coverage), how fast (latency,
 last-delivery hop), and that all nodes converge to the same registry — including,
