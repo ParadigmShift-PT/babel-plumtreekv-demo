@@ -27,12 +27,13 @@ protocols working together:
 
 ## Quickstart
 
-Requires **Java 17+**. Grab `babel-plumtree-demo.jar` from the
+Requires **Java 17+**. Build it (`mvn package`) — the jar lands at
+`target/babel-plumtree-demo.jar` — or download it from the
 [latest release](https://github.com/ParadigmShift-PT/babel-plumtreekv-demo/releases/latest)
-(or [build it](#building-from-source)), then run one node — it auto-opens its UI:
+(then drop the `target/` from the commands below). Run one node — it auto-opens its UI:
 
 ```bash
-java -jar babel-plumtree-demo.jar          # one node; auto-opens its UI at http://localhost:8000/
+java -jar target/babel-plumtree-demo.jar          # one node; auto-opens its UI at http://localhost:8000/
 ```
 
 That gives you a registry you can write to locally. To connect more nodes,
@@ -44,27 +45,32 @@ connects; no discovery to configure:
 
 ```bash
 # first node — the one others contact
-java -jar babel-plumtree-demo.jar babel.address=127.0.0.1 babel.port=6000 HyParView.contact=none
+java -jar target/babel-plumtree-demo.jar babel.address=127.0.0.1 babel.port=6000 HyParView.contact=none
 # second node — dials the first to join
-java -jar babel-plumtree-demo.jar babel.address=127.0.0.1 babel.port=6010 HyParView.contact=127.0.0.1:6000
+java -jar target/babel-plumtree-demo.jar babel.address=127.0.0.1 babel.port=6010 HyParView.contact=127.0.0.1:6000
 ```
 
-**Multicast auto-discovery** — no addresses to type, but same-LAN only and opt-in
-(name the discovery protocol on the command line):
+**Multicast auto-discovery** — for peers on the **same LAN** (typically different
+machines); no addresses to type, but **best-effort** and opt-in (name the discovery
+protocol on the command line):
 
 ```bash
 DISC=babel.discovery=pt.unl.fct.di.novasys.babel.core.protocols.discovery.MulticastDiscoveryProtocol
-java -jar babel-plumtree-demo.jar $DISC                                                  # machine A
-java -jar babel-plumtree-demo.jar $DISC babel.port=6010 babel.discovery.unicast.port=1027   # 2nd node, same host
+java -jar target/babel-plumtree-demo.jar $DISC                                                  # machine A
+java -jar target/babel-plumtree-demo.jar $DISC babel.port=6010 babel.discovery.unicast.port=1027   # 2nd node, same host
 ```
 
 Each node serves a web UI and opens your browser at it on startup
 (`plumtreekv.ui.open=false` suppresses that). Run several nodes on one machine with
 a distinct `babel.port` **spaced by ≥ 10**; the dissemination protocol **shares
 HyParView's channel** (no second port), and the web-UI port follows automatically
-(`babel.port + 2000`). Multicast can be blocked locally (VPN, firewall, multiple
-NICs, macOS Local Network permission) — if nodes don't find each other that way,
-use explicit contact.
+(`babel.port + 2000`).
+
+> **Discovery tip.** For several nodes on **one machine**, use **explicit contact**
+> (above) — multicast usually does *not* loop back between local processes, and is
+> often blocked by VPNs, firewalls, multiple NICs, or macOS' Local Network permission.
+> Reach for multicast only across real LAN hosts; if peers still don't find each other,
+> fall back to explicit contact.
 
 Open two nodes' UIs side by side, write keys on each, and watch the registry
 converge — each row is colour-coded by the **writer** that owns it, so the
@@ -126,7 +132,7 @@ automated, headless runs.
 | `babel.discovery` | (unset) | Opt-in **multicast** LAN auto-discovery — set on the command line to `pt.unl.fct.di.novasys.babel.core.protocols.discovery.MulticastDiscoveryProtocol`. Off by default; bootstrap is via `HyParView.contact`. |
 | `babel.discovery.unicast.port` | `1026` | Per-process discovery socket — only when multicast is enabled; **distinct per local node**. |
 | `HyParView.contact` | (absent) | Bootstrap: `none` = first node; `host:port` = dial that node to join; absent = wait for discovery (only useful with multicast on). |
-| `HyParView.ActiveView` / `PassiveView` / … | 4 / 7 / … | HyParView view sizes and walk lengths — see the config file. |
+| `HyParView.ActiveView` / `PassiveView` / … | 5 / 10 / … | HyParView view sizes (keep active ≥ 4 so the spanning tree stays connected) and walk lengths — see the config file. |
 | `MultiPlumtree.LazyTickPeriod` | `1000` | Period (ms) at which lazy `IHAVE` announcements are flushed/retried — bounds tree-repair latency. |
 | `MultiPlumtree.UseSharedChannel` | `true` | Disseminate over HyParView's channel rather than opening a second one. |
 
