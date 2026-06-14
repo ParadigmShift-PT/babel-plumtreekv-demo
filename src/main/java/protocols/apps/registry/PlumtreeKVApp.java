@@ -22,6 +22,10 @@ import protocols.apps.registry.ui.WebUi;
 import pt.unl.fct.di.novasys.babel.core.GenericProtocol;
 import pt.unl.fct.di.novasys.babel.exceptions.HandlerRegistrationException;
 import pt.unl.fct.di.novasys.babel.generic.ProtoMessage;
+import pt.unl.fct.di.novasys.babel.metrics.MetricSample;
+import pt.unl.fct.di.novasys.babel.metrics.MetricsManager;
+import pt.unl.fct.di.novasys.babel.metrics.NodeSample;
+import pt.unl.fct.di.novasys.babel.metrics.exporters.ExporterCollectOptions;
 import pt.unl.fct.di.novasys.babel.protocols.dissemination.notifications.BroadcastDelivery;
 import pt.unl.fct.di.novasys.babel.protocols.dissemination.requests.BroadcastRequest;
 import pt.unl.fct.di.novasys.babel.protocols.general.notifications.ChannelAvailableNotification;
@@ -347,7 +351,36 @@ public class PlumtreeKVApp extends GenericProtocol {
     private void uponDigestTimer(DigestTimer timer, long timerId) {
         digestTick++;
         telemetry.digest(digestTick, registry.digest(), registry.liveCount(),
-                neighbours.size(), deliveredOps, peersString());
+                neighbours.size(), deliveredOps, peersString(), disseminationSends());
+    }
+
+    /**
+     * Cumulative count of messages the dissemination protocol (MultiPlumtree /
+     * Plumtree) has sent from this node so far — read from the protocol's own
+     * {@code SentMessages} counter via Babel's {@link MetricsManager}.
+     *
+     * <p>This is a <b>read-only observation</b> of a metric the production protocol
+     * already maintains; the demo adds <b>no</b> instrumentation to the protocol
+     * itself. The experiments harness sums this across the fleet and divides by the
+     * useful deliveries to derive a sends-per-delivery / redundancy figure — the
+     * efficiency signal that distinguishes a broadcast tree from flood gossip. (It
+     * counts all protocol sends, including the lazy {@code IHAVE}/{@code GRAFT}/{@code PRUNE}
+     * control traffic, not only payload — so it is an upper bound on, not identical to,
+     * the payload-only RMR of the SRDS'07 paper.)
+     *
+     * @return the cumulative send count, or {@code -1} if the metric is unavailable
+     *         (telemetry then omits the {@code sent=} field for that digest).
+     */
+    private long disseminationSends() {
+        try {
+            NodeSample ns = MetricsManager.getInstance().collectMetricsProtocols(
+                    false, ExporterCollectOptions.builder().build(), broadcastProtoId);
+            MetricSample ms = ns.getProtocolSample(broadcastProtoId).getMetricSample("SentMessages");
+            if (ms == null || ms.getSamples().length == 0) return -1L;
+            return (long) ms.getSamples()[0].getValue();
+        } catch (Exception e) {
+            return -1L;
+        }
     }
 
     /**

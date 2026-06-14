@@ -74,7 +74,8 @@ HyParView's channel** (no second port), and the web-UI port follows automaticall
 
 Open two nodes' UIs side by side, write keys on each, and watch the registry
 converge — each row is colour-coded by the **writer** that owns it, so the
-per-writer trees are visible at a glance.
+per-writer trees are visible at a glance. **Click any row** to load its key and
+value back into the editor, for a quick edit or overwrite.
 
 ---
 

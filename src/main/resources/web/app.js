@@ -74,6 +74,14 @@ function render(state) {
             tr.className = "row";
             const color = ownerColor(e.owner);
             tr.style.setProperty("--owner", color);
+            // Click a row to load its key+value into the editor (quick edit/overwrite).
+            tr.title = "click to load this key into the editor";
+            tr.addEventListener("click", () => {
+                keyInput.value = e.key;
+                valueInput.value = e.value;
+                valueInput.focus();
+                valueInput.select();
+            });
             if (!prevKeys.has(e.key + "=" + e.value)) {
                 tr.classList.add("flash");
             }

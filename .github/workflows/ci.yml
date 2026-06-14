@@ -5,7 +5,7 @@ name: CI
 #   • builds the executable fat JAR (every push/PR);
 #   • on a version tag, publishes the JAR as a GitHub Release;
 #   • on main, publishes the generated Javadoc to GitHub Pages
-#     (https://paradigmshift-pt.github.io/babel-plumtree-demo/).
+#     (https://paradigmshift-pt.github.io/babel-plumtreekv-demo/).
 #
 # DO NOT add an `mvn deploy` or `mvn install` step. Publishing this repository to
 # the ParadigmShift Maven repository would make it appear in the libraries section
@@ -15,6 +15,11 @@ name: CI
 # NOTE: this demo depends on pt.paradigmshift.babel:plumtree:0.1.0 and
 # pt.paradigmshift.babel:hyparview:0.2.0, published to the ParadigmShift Maven
 # repository; CI resolves them from there.
+#
+# Pages is enabled automatically on first run (the docs job passes `enablement: true`
+# to actions/configure-pages). If your org blocks enabling Pages via the API, do it
+# once by hand: repo Settings → Pages → Build and deployment → Source: "GitHub Actions"
+# (public repo, or a paid plan for private), then re-run the workflow.
 
 on:
   push:
@@ -56,13 +61,14 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: true
 
+  # Publish the Javadoc to GitHub Pages → https://paradigmshift-pt.github.io/babel-plumtreekv-demo/
   docs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
+      pages: write        # to deploy to Pages
+      id-token: write     # for the Pages OIDC token
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -79,8 +85,13 @@ jobs:
           cache: 'maven'
 
       - name: Generate Javadoc
-        run: mvn --no-transfer-progress javadoc:javadoc
+        run: mvn --no-transfer-progress javadoc:javadoc   # → target/site/apidocs
 
+      # `enablement: true` turns Pages on (building via GitHub Actions) the first time
+      # this runs, so no manual step is needed in most repos — it uses the job's
+      # `pages: write` permission. If your org blocks enabling Pages via the API, do it
+      # once by hand: repo Settings → Pages → Build and deployment → Source: "GitHub
+      # Actions" (public repo, or a paid plan for private), then re-run.
       - uses: actions/configure-pages@v5
         with:
           enablement: true

@@ -145,7 +145,8 @@ table.registry tr:last-child td { border-bottom: none; }
 table.registry td.k { font-family: var(--font-mono); color: var(--text-primary); }
 table.registry td.v { color: var(--text-body); word-break: break-word; }
 table.registry td.ver { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-dim); white-space: nowrap; }
-table.registry tr.row { border-left: 3px solid transparent; }
+table.registry tr.row { border-left: 3px solid transparent; cursor: pointer; }
+table.registry tr.row:hover td { background: rgba(255, 255, 255, 0.045); }
 table.registry tr.row td:first-child { border-left: 3px solid var(--owner, var(--teal)); }
 table.registry tr.empty td { color: var(--text-dim); text-align: center; padding: 1.6rem; font-style: italic; }
 table.registry tr.flash td { animation: flash 0.9s ease-out; }

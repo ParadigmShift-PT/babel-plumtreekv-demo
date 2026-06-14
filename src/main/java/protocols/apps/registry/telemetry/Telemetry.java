@@ -57,10 +57,18 @@ public final class Telemetry {
      * lines. {@code peers} is the active-view set ({@code ip:port} joined by {@code ;},
      * empty when the view is empty): a time-stamped membership snapshot from which the
      * analyzer reconstructs active-view symmetry at a common instant, robust to churn.
+     * {@code sent} (omitted when {@code < 0}) is the dissemination protocol's cumulative
+     * {@code SentMessages} counter for this node — a read-only observation the analyzer
+     * sums fleet-wide and divides by deliveries to get sends-per-delivery (redundancy).
      */
-    public void digest(long tick, long hash, int liveKeys, int activeView, long delivered, String peers) {
-        log.info("DIGEST node={} tick={} hash={} keys={} view={} delivered={} peers={}",
-                nodeId, tick, Long.toHexString(hash), liveKeys, activeView, delivered, peers);
+    public void digest(long tick, long hash, int liveKeys, int activeView, long delivered, String peers, long sent) {
+        if (sent >= 0) {
+            log.info("DIGEST node={} tick={} hash={} keys={} view={} delivered={} sent={} peers={}",
+                    nodeId, tick, Long.toHexString(hash), liveKeys, activeView, delivered, sent, peers);
+        } else {
+            log.info("DIGEST node={} tick={} hash={} keys={} view={} delivered={} peers={}",
+                    nodeId, tick, Long.toHexString(hash), liveKeys, activeView, delivered, peers);
+        }
     }
 
     public void neighborUp(String peer, int activeView) {
