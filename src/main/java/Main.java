@@ -105,11 +105,11 @@ public class Main {
         GenericProtocol broadcast;
         short broadcastId;
         if (protocol.equals("single")) {
-            props.putIfAbsent(Plumtree.PAR_USE_SHARED_CHANNEL, "true");
+            props.putIfAbsent(Plumtree.PAR_PEER_ADDRESS_RESOLUTION, Plumtree.RESOLUTION_SHARED);
             broadcast = new Plumtree(props, myself);
             broadcastId = Plumtree.PROTOCOL_ID;
         } else {
-            props.putIfAbsent(MultiPlumtree.PAR_USE_SHARED_CHANNEL, "true");
+            props.putIfAbsent(MultiPlumtree.PAR_PEER_ADDRESS_RESOLUTION, MultiPlumtree.RESOLUTION_SHARED);
             broadcast = new MultiPlumtree(props, myself);
             broadcastId = MultiPlumtree.PROTOCOL_ID;
         }

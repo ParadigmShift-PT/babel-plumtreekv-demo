@@ -62,7 +62,7 @@
         <babel.core.version>1.0.1</babel.core.version>
         <babel.protocols.common.version>1.1.0</babel.protocols.common.version>
         <hyparview.version>0.2.0</hyparview.version>
-        <plumtree.version>0.2.0</plumtree.version>
+        <plumtree.version>0.3.0</plumtree.version>
         <log4j.version>2.23.1</log4j.version>
     </properties>
 

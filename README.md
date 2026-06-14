@@ -135,7 +135,7 @@ automated, headless runs.
 | `HyParView.contact` | (absent) | Bootstrap: `none` = first node; `host:port` = dial that node to join; absent = wait for discovery (only useful with multicast on). |
 | `HyParView.ActiveView` / `PassiveView` / … | 5 / 10 / … | HyParView view sizes (keep active ≥ 4 so the spanning tree stays connected) and walk lengths — see the config file. |
 | `MultiPlumtree.LazyTickPeriod` | `1000` | Period (ms) at which lazy `IHAVE` announcements are flushed/retried — bounds tree-repair latency. |
-| `MultiPlumtree.UseSharedChannel` | `true` | Disseminate over HyParView's channel rather than opening a second one. |
+| `MultiPlumtree.PeerAddressResolution` | `shared` | Disseminate over HyParView's channel (`shared`) rather than opening a second one of its own. |
 
 ### PlumtreeKV application (`plumtreekv.*`)
 

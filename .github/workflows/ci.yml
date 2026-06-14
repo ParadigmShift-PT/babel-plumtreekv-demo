@@ -12,7 +12,7 @@ name: CI
 # of the website alongside the real reusable artifacts — which is explicitly NOT
 # what this demo is. Distribution is the fat JAR attached to the GitHub Release.
 #
-# NOTE: this demo depends on pt.paradigmshift.babel:plumtree:0.2.0 and
+# NOTE: this demo depends on pt.paradigmshift.babel:plumtree:0.3.0 and
 # pt.paradigmshift.babel:hyparview:0.2.0, published to the ParadigmShift Maven
 # repository; CI resolves them from there.
 #
