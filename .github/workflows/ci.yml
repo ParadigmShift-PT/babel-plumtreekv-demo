@@ -1,0 +1,93 @@
+name: CI
+
+# babel-plumtree-demo (PlumtreeKV) is a runnable demo application, NOT a published
+# library. CI:
+#   • builds the executable fat JAR (every push/PR);
+#   • on a version tag, publishes the JAR as a GitHub Release;
+#   • on main, publishes the generated Javadoc to GitHub Pages
+#     (https://paradigmshift-pt.github.io/babel-plumtree-demo/).
+#
+# DO NOT add an `mvn deploy` or `mvn install` step. Publishing this repository to
+# the ParadigmShift Maven repository would make it appear in the libraries section
+# of the website alongside the real reusable artifacts — which is explicitly NOT
+# what this demo is. Distribution is the fat JAR attached to the GitHub Release.
+#
+# NOTE: this demo depends on pt.paradigmshift.babel:plumtree:0.1.0 and
+# pt.paradigmshift.babel:hyparview:0.2.0, published to the ParadigmShift Maven
+# repository; CI resolves them from there.
+
+on:
+  push:
+    branches: [ main ]
+    tags:     [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create the Release on tag pushes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build executable fat JAR
+        run: mvn package --no-transfer-progress
+
+      - name: Upload demo JAR (workflow artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: babel-plumtree-demo
+          path: target/babel-plumtree-demo.jar
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/babel-plumtree-demo.jar
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+
+  docs:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Generate Javadoc
+        run: mvn --no-transfer-progress javadoc:javadoc
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site/apidocs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

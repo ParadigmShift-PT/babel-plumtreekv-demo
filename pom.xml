@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pt.paradigmshift.babel</groupId>
+    <artifactId>babel-plumtree-demo</artifactId>
+    <version>0.1.0</version>
+    <name>PlumtreeKV — Replicated Key-Value Store Demo</name>
+
+    <description>
+        A software-only tech demo for the ParadigmShift babel-plumtree library:
+        PlumtreeKV, a multi-writer, eventually-consistent replicated key-value
+        store. Any node writes keys; updates disseminate over HyParView +
+        MultiPlumtree (one spanning tree per writer) and every node converges to
+        the same registry under last-writer-wins, read locally with no network
+        round-trip — the canonical Plumtree use case (cf. Riak cluster metadata).
+        A live web UI shows this node's converged registry (colour-coded by
+        owner) and active-view neighbours; a headless workload driver and
+        structured telemetry make the same binary the instrument for the
+        babel-plumtree-experiments harness. This is a runnable demo, NOT a
+        library: it is intentionally not published to the ParadigmShift Maven
+        repository (there is no distributionManagement block on purpose; do not
+        add one, and do not add an `mvn deploy` step to ci.yml). Distribution is
+        the executable fat JAR attached to a GitHub Release.
+    </description>
+    <url>https://www.paradigmshift.pt</url>
+
+    <licenses>
+        <license>
+            <name>ParadigmShift Proprietary License</name>
+            <url>https://www.paradigmshift.pt</url>
+            <distribution>repo</distribution>
+            <comments>
+                Non-commercial use is permitted; commercial use requires a written
+                licence from ParadigmShift, Lda. See the LICENSE file for full terms.
+            </comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>João Leitão</name>
+            <email>joao.leitao@paradigmshift.pt</email>
+            <organization>ParadigmShift, Lda</organization>
+            <organizationUrl>https://www.paradigmshift.pt</organizationUrl>
+        </developer>
+        <developer>
+            <name>ParadigmShift</name>
+            <email>info@paradigmshift.pt</email>
+            <organization>ParadigmShift, Lda</organization>
+            <organizationUrl>https://www.paradigmshift.pt</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
+        <babel.core.version>1.0.1</babel.core.version>
+        <babel.protocols.common.version>1.1.0</babel.protocols.common.version>
+        <hyparview.version>0.2.0</hyparview.version>
+        <plumtree.version>0.1.0</plumtree.version>
+        <log4j.version>2.23.1</log4j.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>paradigmshift-repository</id>
+            <name>ParadigmShift Repository</name>
+            <url>https://maven.paradigmshift.pt/releases</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- The ParadigmShift fork of Babel-Swarm (brings babel-network-layer + logging). -->
+        <dependency>
+            <groupId>pt.paradigmshift.babel</groupId>
+            <artifactId>babel-core</artifactId>
+            <version>${babel.core.version}</version>
+        </dependency>
+
+        <!-- Shared cross-protocol events: BroadcastRequest/BroadcastDelivery,
+             NeighborUp/Down, ChannelAvailableNotification. -->
+        <dependency>
+            <groupId>pt.paradigmshift.babel</groupId>
+            <artifactId>babel-protocols-common</artifactId>
+            <version>${babel.protocols.common.version}</version>
+        </dependency>
+
+        <!-- Overlay membership: HyParView (slot 2500). Owns the channel the demo
+             reuses, and the source of NeighborUp/Down + ChannelAvailableNotification. -->
+        <dependency>
+            <groupId>pt.paradigmshift.babel</groupId>
+            <artifactId>hyparview</artifactId>
+            <version>${hyparview.version}</version>
+        </dependency>
+
+        <!-- Dissemination: Plumtree / MultiPlumtree (slots 3000 / 3100). Carries
+             registry updates as opaque BroadcastRequest payloads; the demo uses
+             MultiPlumtree (per-writer trees), sharing HyParView's channel. -->
+        <dependency>
+            <groupId>pt.paradigmshift.babel</groupId>
+            <artifactId>plumtree</artifactId>
+            <version>${plumtree.version}</version>
+        </dependency>
+
+        <!-- SLF4J->Log4j2 bridge so transitive SLF4J logs route into our file appender. -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.12.1</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <doclint>none</doclint>
+                    <quiet>true</quiet>
+                    <windowtitle>PlumtreeKV API</windowtitle>
+                    <doctitle>PlumtreeKV ${project.version} API</doctitle>
+                    <bottom>Copyright &amp;copy; 2026 ParadigmShift, Lda. See LICENSE for terms.</bottom>
+                </configuration>
+            </plugin>
+
+            <!-- Runnable fat JAR (target/babel-plumtree-demo.jar, main class Main).
+                 The distributable output (attached to GitHub Releases), NOT a
+                 Maven-deployed library. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.7.1</version>
+                <configuration>
+                    <finalName>babel-plumtree-demo</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <archive>
+                        <manifest>
+                            <mainClass>Main</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Multi-Release>true</Multi-Release>
+                        </manifestEntries>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>assemble-all</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

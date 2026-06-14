@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlumtreeKV — ParadigmShift</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="logo-group">
+        <svg class="logo-mark" viewBox="0 0 36 36" aria-hidden="true">
+            <defs>
+                <linearGradient id="psg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#7B2FBE"/>
+                    <stop offset="1" stop-color="#0ED2B6"/>
+                </linearGradient>
+            </defs>
+            <g fill="none" stroke="url(#psg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9,11 15,18 9,25" opacity="0.5"/>
+                <polyline points="15,11 21,18 15,25" opacity="0.75"/>
+                <polyline points="21,11 27,18 21,25" opacity="1"/>
+            </g>
+        </svg>
+        <span class="logo-text">ParadigmShift</span>
+    </div>
+    <div class="nav-status" id="navStatus">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">connecting…</span>
+    </div>
+</header>
+
+<section class="hero">
+    <p class="eyebrow">Tech demo · Plumtree</p>
+    <h1>PlumtreeKV</h1>
+    <p class="lede">
+        A multi-writer, eventually-consistent <strong>replicated key-value store</strong>.
+        Any node writes a key; the update gossips along that writer's spanning tree
+        (HyParView&nbsp;+&nbsp;MultiPlumtree) and every node converges to the same
+        registry — read locally, no coordinator.
+    </p>
+</section>
+
+<main class="layout">
+    <!-- The converged registry: the headline view. -->
+    <section class="card registry-card">
+        <div class="card-head">
+            <h2>Registry <span class="muted" id="keyCount">0 keys</span></h2>
+            <span class="legend">colour = writer</span>
+        </div>
+        <div class="table-wrap">
+            <table class="registry">
+                <thead>
+                    <tr><th>key</th><th>value</th><th>writer</th><th>version</th></tr>
+                </thead>
+                <tbody id="rows">
+                    <tr class="empty"><td colspan="4">empty — write a key to seed the fleet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <aside class="side">
+        <!-- Write panel. -->
+        <section class="card">
+            <h2>Write</h2>
+            <div class="field">
+                <label for="key">key</label>
+                <input id="key" type="text" autocomplete="off" spellcheck="false" placeholder="service/url">
+            </div>
+            <div class="field">
+                <label for="value">value</label>
+                <input id="value" type="text" autocomplete="off" spellcheck="false" placeholder="https://…">
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary" id="setBtn">Set</button>
+                <button class="btn" id="delBtn">Delete</button>
+            </div>
+            <p class="hint">Writes originate here and disseminate on <em>this node's</em> tree.</p>
+        </section>
+
+        <!-- This node. -->
+        <section class="card">
+            <h2>This node</h2>
+            <dl class="meta">
+                <dt>id</dt><dd id="nodeId" class="mono">…</dd>
+                <dt>digest</dt><dd id="digest" class="mono" title="matches across converged nodes">…</dd>
+            </dl>
+            <h3 class="sub">active view <span class="muted">(HyParView)</span></h3>
+            <ul id="neighbours" class="neighbours"><li class="muted">connecting…</li></ul>
+        </section>
+
+        <!-- Churn control. -->
+        <section class="card">
+            <h2>Churn</h2>
+            <p class="hint">Take this node down and watch the other writers' trees heal and stay consistent.</p>
+            <button class="btn btn--danger" id="leaveBtn">Leave the fleet</button>
+        </section>
+    </aside>
+</main>
+
+<footer class="footer">
+    <span>ParadigmShift · Plumtree tech demo</span>
+    <span class="mono">HyParView + MultiPlumtree</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
